@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { deleteHydraClient } from '@/lib/api/hydra-clients';
 import type { HydraClientSummary } from '@/lib/types/hydra-client.types';
@@ -13,6 +14,7 @@ export default function ClientsDashboard({
 }: {
   initialClients: HydraClientSummary[];
 }) {
+  const router = useRouter();
   const [clients, setClients] = useState(initialClients);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -124,15 +126,17 @@ export default function ClientsDashboard({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => router.push(`/admin/clients/${encodeURIComponent(client.client_id)}`)}
                       className="rounded-xl border border-turquoise-surf px-3 py-2 text-sm text-carbon-black"
                     >
                       View
                     </button>
                     <button
                       type="button"
+                      onClick={() => router.push(`/admin/clients/${encodeURIComponent(client.client_id)}/manage`)}
                       className="rounded-xl border border-turquoise-surf px-3 py-2 text-sm text-carbon-black"
                     >
-                      Edit
+                      Manage
                     </button>
                     <button
                       type="button"

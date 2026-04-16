@@ -35,7 +35,7 @@ export function AdminSidebar() {
 
       <nav className="mt-10 space-y-2">
         {navigationItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href);
 
           return (
             <Link

@@ -1,11 +1,14 @@
 'server-only';
 
+import { randomBytes } from 'crypto';
+
 import { type Result } from 'ts-results';
 
 import {
   HydraClientSummarySchema,
   HydraClientCreateResponseSchema,
   type CreateHydraClientBody,
+  type UpdateHydraClientBody,
   type HydraClientSummary,
   type HydraClientCreateResponse,
 } from '@/lib/types/hydra-client.types';
@@ -18,6 +21,10 @@ import {
   HydraHttpError,
   type HydraError,
 } from '@/lib/util/hydra';
+
+function generateClientSecret(): string {
+  return randomBytes(64).toString('hex');
+}
 
 function getHydraAdminUrl(): string {
   const url = process.env.HYDRA_ADMIN_URL;
@@ -84,6 +91,75 @@ export async function deleteHydraClient(
   });
 }
 
+export async function revokeHydraClientTokens(
+  clientId: string,
+): Promise<Result<true, HydraError>> {
+  return safeHydraCall(async () => {
+    await hydraFetch(
+      `/admin/oauth2/tokens?client_id=${encodeURIComponent(clientId)}`,
+      { method: 'DELETE' },
+    );
+    return true as const;
+  });
+}
+
+export async function rotateHydraClientSecret(
+  clientId: string,
+): Promise<Result<HydraClientCreateResponse, HydraError>> {
+  return safeHydraCall(async () => {
+    const response = await hydraFetch(
+      `/admin/clients/${encodeURIComponent(clientId)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([
+          { op: 'replace', path: '/client_secret', value: generateClientSecret() },
+        ]),
+      },
+    );
+    const payload = await response.json();
+    return HydraClientCreateResponseSchema.parse(payload);
+  });
+}
+
+export async function updateHydraClient(
+  clientId: string,
+  input: UpdateHydraClientBody,
+): Promise<Result<HydraClientCreateResponse, HydraError>> {
+  return safeHydraCall(async () => {
+    const response = await hydraFetch(
+      `/admin/clients/${encodeURIComponent(clientId)}`,
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: clientId,
+          client_name: input.client_name,
+          grant_types: ['client_credentials'],
+          response_types: [],
+          scope: input.scope,
+          audience: input.audience.split(' ').filter(Boolean),
+          token_endpoint_auth_method: input.token_endpoint_auth_method,
+        }),
+      },
+    );
+    const updated = await response.json();
+    return HydraClientCreateResponseSchema.parse(updated);
+  });
+}
+
+export async function getHydraClient(
+  clientId: string,
+): Promise<Result<HydraClientCreateResponse, HydraError>> {
+  return safeHydraCall(async () => {
+    const response = await hydraFetch(
+      `/admin/clients/${encodeURIComponent(clientId)}`,
+    );
+    const payload = await response.json();
+    return HydraClientCreateResponseSchema.parse(payload);
+  });
+}
+
 export async function createHydraClient(
   input: CreateHydraClientBody,
 ): Promise<Result<HydraClientCreateResponse, HydraError>> {
@@ -94,9 +170,11 @@ export async function createHydraClient(
       body: JSON.stringify({
         client_id: input.client_id,
         client_name: input.client_name,
+        client_secret: generateClientSecret(),
         grant_types: ['client_credentials'],
         response_types: [],
         scope: input.scope,
+        audience: input.audience.split(' ').filter(Boolean),
         token_endpoint_auth_method: input.token_endpoint_auth_method,
       }),
     });

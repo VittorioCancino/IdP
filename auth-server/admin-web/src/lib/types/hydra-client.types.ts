@@ -43,9 +43,21 @@ export const CreateHydraClientBodySchema = z.object({
   client_id: z.string().trim().min(1, "Client ID is required"),
   client_name: z.string().trim().min(1, "Client name is required"),
   scope: z.string().trim().default(""),
+  audience: z.string().trim().default(""),
   token_endpoint_auth_method: z
     .enum(["client_secret_basic", "client_secret_post"])
     .default("client_secret_basic"),
 });
 
 export type CreateHydraClientBody = z.infer<typeof CreateHydraClientBodySchema>;
+
+export const UpdateHydraClientBodySchema = z.object({
+  client_name: z.string().trim().min(1, 'Client name is required'),
+  scope: z.string().trim().default(''),
+  audience: z.string().trim().default(''),
+  token_endpoint_auth_method: z
+    .enum(['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'])
+    .default('client_secret_basic'),
+});
+
+export type UpdateHydraClientBody = z.infer<typeof UpdateHydraClientBodySchema>;

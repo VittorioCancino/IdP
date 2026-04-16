@@ -25,6 +25,7 @@ export default function AdminCreateClientPage() {
       client_id: formData.get('client_id'),
       client_name: formData.get('client_name'),
       scope: formData.get('scope'),
+      audience: formData.get('audience'),
       token_endpoint_auth_method: formData.get('token_endpoint_auth_method'),
     });
 
@@ -108,6 +109,14 @@ export default function AdminCreateClientPage() {
         </div>
 
         <ScopeInput />
+
+        <ScopeInput
+          label="Audience"
+          name="audience"
+          placeholder="https://api.example.com/payments…"
+          defaultTags={[]}
+          hint="Resource server URLs this client is allowed to request tokens for."
+        />
 
         <label className="grid gap-2">
           <span className="text-sm font-medium text-carbon-black">
