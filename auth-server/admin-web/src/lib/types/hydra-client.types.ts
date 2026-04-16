@@ -56,7 +56,7 @@ export const UpdateHydraClientBodySchema = z.object({
   scope: z.string().trim().default(''),
   audience: z.string().trim().default(''),
   token_endpoint_auth_method: z
-    .enum(['client_secret_basic', 'client_secret_post', 'private_key_jwt', 'none'])
+    .enum(['client_secret_basic', 'client_secret_post', 'none'])
     .default('client_secret_basic'),
 });
 

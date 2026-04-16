@@ -127,7 +127,6 @@ export default function EditClientForm({ client }: EditClientFormProps) {
           >
             <option value="client_secret_basic">client_secret_basic</option>
             <option value="client_secret_post">client_secret_post</option>
-            <option value="private_key_jwt">private_key_jwt</option>
             <option value="none">none</option>
           </select>
         </div>

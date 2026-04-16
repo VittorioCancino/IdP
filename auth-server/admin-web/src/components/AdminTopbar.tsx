@@ -1,3 +1,5 @@
+import { SignOutButton } from "@/components/SignOutButton";
+
 type AdminTopbarProps = {
   title: string;
   eyebrow: string;
@@ -38,6 +40,7 @@ export function AdminTopbar({
           </p>
           <p className="truncate text-sm text-neutral">{userEmail}</p>
         </div>
+        <SignOutButton />
       </div>
     </header>
   );
