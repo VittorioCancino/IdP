@@ -1,11 +1,4 @@
-import { Err } from 'ts-results';
-
-import {
-  apiFetch,
-  handleErrorResponse,
-  BaseError,
-  type ApiResult,
-} from '@/lib/api/client';
+import { apiFetch, handleErrorResponse, type ApiResult } from '@/lib/api/client';
 import type {
   CreateHydraClientBody,
   UpdateHydraClientBody,
