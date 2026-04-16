@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hydra}
+      POSTGRES_USER: ${POSTGRES_USER:-hydra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hydra}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hydra} -d ${POSTGRES_DB:-hydra}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  hydra:
+    image: ${HYDRA_IMAGE:-oryd/hydra:v25.4.0}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: serve all --dev --config /etc/config/hydra/hydra.yml
+    environment:
+      DSN: postgres://${POSTGRES_USER:-hydra}:${POSTGRES_PASSWORD:-hydra}@postgres:5432/${POSTGRES_DB:-hydra}?sslmode=disable&max_conns=20&max_idle_conns=4
+      SECRETS_SYSTEM: ${HYDRA_SYSTEM_SECRET}
+      URLS_SELF_ISSUER: ${HYDRA_ISSUER_URL:-http://127.0.0.1:4444/}
+    ports:
+      - "127.0.0.1:${HYDRA_PUBLIC_PORT:-4444}:4444"
+      - "127.0.0.1:${HYDRA_ADMIN_PORT:-4445}:4445"
+    volumes:
+      - ./hydra/hydra.yml:/etc/config/hydra/hydra.yml:ro
+
+volumes:
+  postgres_data:

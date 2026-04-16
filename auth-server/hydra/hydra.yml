@@ -1,0 +1,8 @@
+serve:
+  cookies:
+    same_site_mode: Lax
+
+oidc:
+  subject_identifiers:
+    supported_types:
+      - public
