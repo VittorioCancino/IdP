@@ -31,6 +31,48 @@
 $ pnpm install
 ```
 
+## Local Postgres with Docker
+
+Create a local env file with the Prisma connection string:
+
+```bash
+cp .env.example .env
+```
+
+Start PostgreSQL in Docker:
+
+```bash
+pnpm run db:up
+```
+
+The default local database is:
+
+- Host: `localhost`
+- Port: `5432`
+- Database: `resource_server`
+- User: `resource_server`
+- Password: `resource_server`
+
+The matching Prisma connection string is already in `.env.example`:
+
+```bash
+DATABASE_URL="postgresql://resource_server:resource_server@localhost:5432/resource_server?schema=public"
+```
+
+Generate the Prisma client and run migrations after the container is healthy:
+
+```bash
+pnpm run prisma:generate
+pnpm run prisma:migrate:dev
+```
+
+Useful Docker commands:
+
+```bash
+pnpm run db:logs
+pnpm run db:down
+```
+
 ## Compile and run the project
 
 ```bash
