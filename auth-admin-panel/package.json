@@ -1,9 +1,9 @@
 {
-  "name": "admin-web",
+  "name": "auth-admin-panel",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "init": "bash ./init",
+    "init": "bash ./init.sh",
     "dev": "bun --bun next dev",
     "build": "bun --bun next build",
     "start": "bun --bun next start",
@@ -47,7 +47,7 @@
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "tsx prisma/scripts/seed.ts"
+    "seed": "bun prisma/scripts/seed.ts"
   },
   "ignoreScripts": [
     "sharp",

@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { auth } from '@/auth';
-import { revokeHydraClientTokens } from '@/lib/hydra/admin-client';
-import type { ApiError } from '@/lib/types/api.types';
-import { unauthorizedError, notFoundError, internalServerError } from '@/lib/util/api';
+import { auth } from "@/auth";
+import { revokeHydraClientTokens } from "@/lib/hydra/admin-client";
+import type { ApiError } from "@/lib/types/api.types";
+import {
+  unauthorizedError,
+  notFoundError,
+  internalServerError,
+} from "@/lib/util/api";
 // ⚠️  TODO: REMOVE BEFORE PRODUCTION — dev auth bypass
-import { isAuthBypassed } from '@/lib/util/dev';
+import { isAuthBypassed } from "@/lib/util/dev";
 
 export async function DELETE(
   _request: Request,
@@ -26,11 +30,11 @@ export async function DELETE(
   if (result.err) {
     const err = result.val;
     if (err.isHttpError && err.status === 404) {
-      return NextResponse.json(notFoundError('Client'), { status: 404 });
+      return NextResponse.json(notFoundError("Client"), { status: 404 });
     }
-    console.error('Failed to revoke client tokens.', err);
+    console.error("Failed to revoke client tokens.", err);
     return NextResponse.json(internalServerError(), { status: 500 });
   }
 
-  return NextResponse.json(true);
+  return NextResponse.json<true>(true);
 }

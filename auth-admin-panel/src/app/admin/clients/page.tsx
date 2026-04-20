@@ -4,7 +4,7 @@ import type { HydraClientSummary } from "@/lib/types/hydra-client.types";
 import ClientsDashboard from "@/components/ClientsDashboard";
 
 async function getHydraClients(): Promise<HydraClientSummary[]> {
-  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3001";
   const requestHeaders = await headers();
   const response = await fetch(`${baseUrl}/api/v1/hydra/clients`, {
     cache: "no-store",

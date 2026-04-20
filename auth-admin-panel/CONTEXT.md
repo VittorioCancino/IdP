@@ -1,4 +1,4 @@
-# Agent Context — admin-web
+# Agent Context — auth-admin-panel
 
 You have been pointed at this file to get up to speed before doing any work.
 Read it fully, then read the files listed under **Read next**, then confirm your
@@ -8,7 +8,7 @@ understanding before touching any code.
 
 ## What this is
 
-`admin-web` is a **secured proxy and GUI** on top of Ory Hydra's admin API
+`auth-admin-panel` is a **secured proxy and GUI** on top of Ory Hydra's admin API
 (`localhost:4445`). Hydra has no built-in auth — this Next.js app wraps every
 Hydra admin operation behind a NextAuth.js credential login. The Hydra admin
 API is never exposed directly.
@@ -18,8 +18,8 @@ The broader monorepo lives at `~/repos/IdP`:
 ```
 IdP/
 ├── auth-server/
-│   ├── hydra/        # Ory Hydra v25.4.0 (Docker)
-│   └── admin-web/    # ← you are here
+│   └── hydra/        # Ory Hydra v25.4.0 (Docker)
+├── auth-admin-panel/ # ← you are here
 └── resource-server/  # NestJS 11 — blank canvas, not in scope yet
 ```
 
@@ -42,6 +42,7 @@ Read these files in order before writing any code:
 ## Current state (2026-04-15)
 
 ### Done
+
 - Admin login (NextAuth.js credentials, JWT session, Prisma `AdminUser`)
 - OAuth2 client **list** — stats cards + table, live updates on mutation
 - OAuth2 client **creation** — scope tag input, in-button loading, inline field
@@ -50,10 +51,12 @@ Read these files in order before writing any code:
   removal from table and stats
 
 ### Not yet implemented
+
 - Client **View** and **Edit** — buttons exist in the table but are not wired up
 - Resource server logic
 
 ### Known TODOs before production
+
 - Remove `DEV_BYPASS_AUTH` env var, `lib/util/dev.ts`, and all call sites marked
   `⚠️  TODO: REMOVE BEFORE PRODUCTION`
 
@@ -79,8 +82,8 @@ bun run build        # production build
 bun run lint         # ESLint
 bun run db:migrate   # Prisma migrations
 bun run db:seed      # seed admin user from .env
-docker compose -f ../compose.yml up -d        # Hydra + its PostgreSQL
-docker compose up -d postgres                 # admin-web PostgreSQL (5433)
+docker compose -f ../auth-server/compose.yml up -d        # Hydra + its PostgreSQL
+docker compose up -d postgres                              # auth-admin-panel PostgreSQL (5433)
 ```
 
 ---
@@ -90,10 +93,10 @@ docker compose up -d postgres                 # admin-web PostgreSQL (5433)
 This codebase follows the same layered pattern as `~/repos/DefensasFIC`. When
 in doubt about how to structure something, read the equivalent file there.
 
-| Layer | Location | Rule |
-|---|---|---|
-| DB queries | `lib/db/` | `safeDbCall()` → `Result<T, DbError>` |
-| Hydra calls | `lib/hydra/` | `safeHydraCall()` → `Result<T, HydraError>` |
-| API types | `lib/types/` | Zod schema + `z.infer<>` — shared by route and client |
-| Error builders | `lib/util/api.ts` | `unauthorizedError`, `notFoundError`, etc. |
-| Client callers | `lib/api/` | `apiFetch` + `handleErrorResponse` → `ApiResult<T>` |
+| Layer          | Location          | Rule                                                  |
+| -------------- | ----------------- | ----------------------------------------------------- |
+| DB queries     | `lib/db/`         | `safeDbCall()` → `Result<T, DbError>`                 |
+| Hydra calls    | `lib/hydra/`      | `safeHydraCall()` → `Result<T, HydraError>`           |
+| API types      | `lib/types/`      | Zod schema + `z.infer<>` — shared by route and client |
+| Error builders | `lib/util/api.ts` | `unauthorizedError`, `notFoundError`, etc.            |
+| Client callers | `lib/api/`        | `apiFetch` + `handleErrorResponse` → `ApiResult<T>`   |

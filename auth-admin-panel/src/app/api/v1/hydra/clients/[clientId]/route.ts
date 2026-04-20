@@ -1,22 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { auth } from '@/auth';
+import { auth } from "@/auth";
 import {
   deleteHydraClient,
   getHydraClient,
   updateHydraClient,
-} from '@/lib/hydra/admin-client';
-import type { ApiError } from '@/lib/types/api.types';
-import type { HydraClientCreateResponse } from '@/lib/types/hydra-client.types';
-import { UpdateHydraClientBodySchema } from '@/lib/types/hydra-client.types';
+} from "@/lib/hydra/admin-client";
+import type { ApiError } from "@/lib/types/api.types";
+import type { HydraClientCreateResponse } from "@/lib/types/hydra-client.types";
+import { UpdateHydraClientBodySchema } from "@/lib/types/hydra-client.types";
 import {
   unauthorizedError,
   notFoundError,
   internalServerError,
   parseJsonBody,
-} from '@/lib/util/api';
+} from "@/lib/util/api";
 // ⚠️  TODO: REMOVE BEFORE PRODUCTION — dev auth bypass
-import { isAuthBypassed } from '@/lib/util/dev';
+import { isAuthBypassed } from "@/lib/util/dev";
 
 export async function GET(
   _request: Request,
@@ -37,9 +37,9 @@ export async function GET(
   if (result.err) {
     const err = result.val;
     if (err.isHttpError && err.status === 404) {
-      return NextResponse.json(notFoundError('Client'), { status: 404 });
+      return NextResponse.json(notFoundError("Client"), { status: 404 });
     }
-    console.error('Failed to fetch Hydra client.', err);
+    console.error("Failed to fetch Hydra client.", err);
     return NextResponse.json(internalServerError(), { status: 500 });
   }
 
@@ -68,9 +68,9 @@ export async function PUT(
   if (result.err) {
     const err = result.val;
     if (err.isHttpError && err.status === 404) {
-      return NextResponse.json(notFoundError('Client'), { status: 404 });
+      return NextResponse.json(notFoundError("Client"), { status: 404 });
     }
-    console.error('Failed to update Hydra client.', err);
+    console.error("Failed to update Hydra client.", err);
     return NextResponse.json(internalServerError(), { status: 500 });
   }
 
@@ -96,11 +96,11 @@ export async function DELETE(
   if (result.err) {
     const err = result.val;
     if (err.isHttpError && err.status === 404) {
-      return NextResponse.json(notFoundError('Client'), { status: 404 });
+      return NextResponse.json(notFoundError("Client"), { status: 404 });
     }
-    console.error('Failed to delete Hydra client.', err);
+    console.error("Failed to delete Hydra client.", err);
     return NextResponse.json(internalServerError(), { status: 500 });
   }
 
-  return NextResponse.json(true);
+  return NextResponse.json<true>(true);
 }

@@ -1,27 +1,27 @@
-import { headers } from 'next/headers';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { headers } from "next/headers";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import type { HydraClientCreateResponse } from '@/lib/types/hydra-client.types';
-import EditClientForm from '@/components/EditClientForm';
-import RotateSecretCard from '@/components/RotateSecretCard';
-import RevokeTokensCard from '@/components/RevokeTokensCard';
+import type { HydraClientCreateResponse } from "@/lib/types/hydra-client.types";
+import EditClientForm from "@/components/EditClientForm";
+import RotateSecretCard from "@/components/RotateSecretCard";
+import RevokeTokensCard from "@/components/RevokeTokensCard";
 
 async function getClient(clientId: string): Promise<HydraClientCreateResponse> {
-  const baseUrl = process.env.AUTH_URL ?? 'http://localhost:3000';
+  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3001";
   const requestHeaders = await headers();
   const response = await fetch(
     `${baseUrl}/api/v1/hydra/clients/${encodeURIComponent(clientId)}`,
     {
-      cache: 'no-store',
+      cache: "no-store",
       headers: {
-        Cookie: requestHeaders.get('cookie') ?? '',
+        Cookie: requestHeaders.get("cookie") ?? "",
       },
     },
   );
 
   if (response.status === 404) notFound();
-  if (!response.ok) throw new Error('Failed to fetch Hydra client.');
+  if (!response.ok) throw new Error("Failed to fetch Hydra client.");
 
   return response.json();
 }
@@ -62,7 +62,6 @@ export default async function ClientManagePage({
 
       {/* Action cards */}
       <div className="grid gap-4">
-
         {/* Edit Client */}
         <EditClientForm client={client} />
 
@@ -77,7 +76,6 @@ export default async function ClientManagePage({
           clientId={client.client_id}
           clientName={client.client_name}
         />
-
       </div>
     </div>
   );

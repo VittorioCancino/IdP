@@ -1,14 +1,16 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 # Repository Guidelines
 
 ## Project Purpose
 
-This is the **admin-web** — a secured proxy layer on top of Ory Hydra's admin API (`localhost:4445`). It serves two purposes:
+This is the **auth-admin-panel** — a secured proxy layer on top of Ory Hydra's admin API (`localhost:4445`). It serves two purposes:
 
 1. **Auth gate** — Hydra's admin API has no built-in authentication. This app wraps every Hydra admin operation behind a NextAuth.js credential login so only authenticated admins can reach those endpoints.
 2. **GUI** — A web interface for managing OAuth2 clients and other Hydra resources.
@@ -38,8 +40,8 @@ The Hydra admin API is never exposed directly. All access flows through authenti
 - `bun run dev`: Start local server (`http://localhost:3000`).
 - `bun run build` / `bun run start`: Build and run production.
 - `bun run lint`: Run ESLint.
-- `docker compose -f ../compose.yml up -d`: Start Hydra + its PostgreSQL.
-- `docker compose up -d postgres`: Start admin-web PostgreSQL (port 5433).
+- `docker compose -f ../auth-server/compose.yml up -d`: Start Hydra + its PostgreSQL.
+- `docker compose up -d postgres`: Start auth-admin-panel PostgreSQL (port 5433).
 - `bun run db:migrate`, `bun run db:seed`, `bun run db:studio`: Prisma DB workflows.
 
 ## Architecture Patterns — Enforce These Everywhere
@@ -49,19 +51,23 @@ The Hydra admin API is never exposed directly. All access flows through authenti
 All async operations that can fail must return `Result<T, E>` from `ts-results` — never throw or return `null`.
 
 ```typescript
-import { Ok, Err, Result } from 'ts-results';
+import { Ok, Err, Result } from "ts-results";
 
 // DB layer
-export async function findAdminUserByEmail(email: string): Promise<Result<AdminUser, DbError>> {
+export async function findAdminUserByEmail(
+  email: string,
+): Promise<Result<AdminUser, DbError>> {
   return safeDbCall(async () => {
     return await prisma.adminUser.findUniqueOrThrow({ where: { email } });
   });
 }
 
 // API client layer
-export const listHydraClients = async (): Promise<ApiResult<HydraClientSummary[]>> => {
+export const listHydraClients = async (): Promise<
+  ApiResult<HydraClientSummary[]>
+> => {
   return handleErrorResponse<HydraClientSummary[]>(
-    apiFetch('/api/v1/hydra/clients', { credentials: 'include' }),
+    apiFetch("/api/v1/hydra/clients", { credentials: "include" }),
     { returnBody: true },
   );
 };
@@ -119,7 +125,7 @@ export const listHydraClients = async (): Promise<ApiResult<HydraClientSummary[]
 - Naming: `PascalCase` components, lowercase route folders, `camelCase` utilities.
 - Prefer the configured import alias `@/*` instead of long relative paths.
 - Keep new shared code in the correct `lib/` subdirectory — do not add unrelated helpers to a generic module.
-- Do not write comments that summarize what the code does. Comments explain *why* only when the reason is non-obvious.
+- Do not write comments that summarize what the code does. Comments explain _why_ only when the reason is non-obvious.
 
 ## Security
 

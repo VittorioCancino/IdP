@@ -48,7 +48,7 @@ pnpm run db:up
 The default local database is:
 
 - Host: `localhost`
-- Port: `5432`
+- Port: `5434`
 - Database: `resource_server`
 - User: `resource_server`
 - Password: `resource_server`
@@ -56,7 +56,7 @@ The default local database is:
 The matching Prisma connection string is already in `.env.example`:
 
 ```bash
-DATABASE_URL="postgresql://resource_server:resource_server@localhost:5432/resource_server?schema=public"
+DATABASE_URL="postgresql://resource_server:resource_server@localhost:5434/resource_server?schema=public"
 ```
 
 Generate the Prisma client and run migrations after the container is healthy:

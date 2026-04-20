@@ -30,6 +30,13 @@ require_command() {
   command -v "$1" >/dev/null 2>&1 || fail "Missing required command: $1"
 }
 
+load_env() {
+  set -a
+  # shellcheck disable=SC1091
+  source ./.env
+  set +a
+}
+
 install_dependencies() {
   bun install
 }
@@ -70,10 +77,19 @@ main() {
 
   require_command docker
   require_command bun
+  require_command curl
 
   [[ -f .env ]] || fail 'Missing .env. Copy .env.example to .env before running this script.'
   docker compose version >/dev/null 2>&1 || fail 'Docker Compose plugin is required.'
   docker compose config >/dev/null
+
+  load_env
+
+  export PORT="${PORT:-3001}"
+
+  if ! curl -fsS "${HYDRA_ADMIN_URL}/health/ready" >/dev/null 2>&1; then
+    fail 'Hydra admin API is unreachable. Start auth-server first and verify HYDRA_ADMIN_URL.'
+  fi
 
   log_step 'Resetting Docker services'
   docker compose down -v --remove-orphans
@@ -94,6 +110,7 @@ main() {
   bun run db:seed
 
   log_step 'Starting development server'
+  printf 'Auth admin panel will run on http://localhost:%s\n' "$PORT"
   bun run dev
 }
 

@@ -1,20 +1,19 @@
 # Auth Server
 
-Ory Hydra OAuth2/OIDC server for machine-to-machine authentication. Hydra's admin API has no built-in access control — the [admin-web](admin-web/README.md) console sits in front of it and requires an authenticated session for all admin operations.
+Ory Hydra OAuth2/OIDC server for machine-to-machine authentication. Hydra's admin API has no built-in access control — the separate [auth-admin-panel](../auth-admin-panel/README.md) console sits in front of it and requires an authenticated session for all admin operations.
 
 ## What's Here
 
 - `compose.yml` — PostgreSQL + Hydra Docker stack
 - `hydra/hydra.yml` — Hydra configuration
-- `admin-web/` — Next.js admin console
 
 ## Ports
 
-| Service       | Port | Bound to    |
-|---------------|------|-------------|
-| Hydra public  | 4444 | 127.0.0.1   |
-| Hydra admin   | 4445 | 127.0.0.1   |
-| Hydra Postgres| 5432 | 127.0.0.1   |
+| Service        | Port | Bound to  |
+| -------------- | ---- | --------- |
+| Hydra public   | 4444 | 127.0.0.1 |
+| Hydra admin    | 4445 | 127.0.0.1 |
+| Hydra Postgres | 5432 | 127.0.0.1 |
 
 > The admin port (`4445`) is bound to localhost only. Never expose it publicly.
 
@@ -26,25 +25,18 @@ Ory Hydra OAuth2/OIDC server for machine-to-machine authentication. Hydra's admi
 cp .env.example .env
 ```
 
-| Variable | Description |
-|---|---|
+| Variable              | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
 | `HYDRA_SYSTEM_SECRET` | Secret for signing internal tokens — `openssl rand -hex 32` |
-| `POSTGRES_PASSWORD` | Password for Hydra's PostgreSQL |
+| `POSTGRES_PASSWORD`   | Password for Hydra's PostgreSQL                             |
 
-2. Start Postgres and run Hydra migrations:
-
-```bash
-docker compose up -d postgres
-docker compose run --rm hydra migrate sql up -e --yes --config /etc/config/hydra/hydra.yml
-```
-
-3. Start Hydra:
+2. Bootstrap the standalone Hydra service:
 
 ```bash
-docker compose up -d hydra
+./init.sh
 ```
 
-4. Verify readiness:
+3. Verify readiness:
 
 ```bash
 curl http://127.0.0.1:4444/health/ready

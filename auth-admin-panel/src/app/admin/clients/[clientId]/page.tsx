@@ -1,18 +1,18 @@
-import { headers } from 'next/headers';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { headers } from "next/headers";
+import Link from "next/link";
+import { notFound } from "next/navigation";
 
-import type { HydraClientCreateResponse } from '@/lib/types/hydra-client.types';
+import type { HydraClientCreateResponse } from "@/lib/types/hydra-client.types";
 
 async function getClient(clientId: string): Promise<HydraClientCreateResponse> {
-  const baseUrl = process.env.AUTH_URL ?? 'http://localhost:3000';
+  const baseUrl = process.env.AUTH_URL ?? "http://localhost:3001";
   const requestHeaders = await headers();
   const response = await fetch(
     `${baseUrl}/api/v1/hydra/clients/${encodeURIComponent(clientId)}`,
     {
-      cache: 'no-store',
+      cache: "no-store",
       headers: {
-        Cookie: requestHeaders.get('cookie') ?? '',
+        Cookie: requestHeaders.get("cookie") ?? "",
       },
     },
   );
@@ -20,7 +20,7 @@ async function getClient(clientId: string): Promise<HydraClientCreateResponse> {
   if (response.status === 404) notFound();
 
   if (!response.ok) {
-    throw new Error('Failed to fetch Hydra client.');
+    throw new Error("Failed to fetch Hydra client.");
   }
 
   return response.json();
@@ -34,8 +34,8 @@ export default async function ClientDetailPage({
   const { clientId } = await params;
   const client = await getClient(clientId);
 
-  const scopes = client.scope?.split(' ').filter(Boolean) ?? [];
-  const isMachine = client.grant_types.includes('client_credentials');
+  const scopes = client.scope?.split(" ").filter(Boolean) ?? [];
+  const isMachine = client.grant_types.includes("client_credentials");
 
   return (
     <div className="grid gap-6">
@@ -65,17 +65,16 @@ export default async function ClientDetailPage({
         <span
           className={`w-fit shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium ${
             isMachine
-              ? 'bg-turquoise-surf text-cerulean'
-              : 'bg-ghost-white text-neutral'
+              ? "bg-turquoise-surf text-cerulean"
+              : "bg-ghost-white text-neutral"
           }`}
         >
-          {isMachine ? 'Machine Client' : 'Public Client'}
+          {isMachine ? "Machine Client" : "Public Client"}
         </span>
       </section>
 
       {/* Details grid */}
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-
         {/* Configuration card */}
         <section className="rounded-3xl border border-turquoise-surf bg-white p-6 sm:p-8">
           <p className="font-[var(--font-geist-mono)] text-[0.68rem] uppercase tracking-[0.22em] text-cerulean/70">
@@ -118,7 +117,7 @@ export default async function ClientDetailPage({
 
               <InsetField label="Auth Method">
                 <span className="text-sm text-carbon-black">
-                  {client.token_endpoint_auth_method ?? '—'}
+                  {client.token_endpoint_auth_method ?? "—"}
                 </span>
               </InsetField>
             </div>
@@ -218,7 +217,9 @@ export default async function ClientDetailPage({
 
             {client.owner && (
               <InsetField label="Owner">
-                <span className="text-sm text-carbon-black">{client.owner}</span>
+                <span className="text-sm text-carbon-black">
+                  {client.owner}
+                </span>
               </InsetField>
             )}
 

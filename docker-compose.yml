@@ -1,0 +1,159 @@
+services:
+  hydra-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${HYDRA_POSTGRES_DB:-hydra}
+      POSTGRES_USER: ${HYDRA_POSTGRES_USER:-hydra}
+      POSTGRES_PASSWORD: ${HYDRA_POSTGRES_PASSWORD:-hydra}
+    volumes:
+      - hydra_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${HYDRA_POSTGRES_USER:-hydra} -d ${HYDRA_POSTGRES_DB:-hydra}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - private
+
+  hydra:
+    image: ${HYDRA_IMAGE:-oryd/hydra:v25.4.0}
+    restart: unless-stopped
+    depends_on:
+      hydra-postgres:
+        condition: service_healthy
+    command:
+      - serve
+      - all
+      - --dev
+      - --config
+      - /etc/config/hydra/hydra.yml
+    environment:
+      DSN: postgres://${HYDRA_POSTGRES_USER:-hydra}:${HYDRA_POSTGRES_PASSWORD:-hydra}@hydra-postgres:5432/${HYDRA_POSTGRES_DB:-hydra}?sslmode=disable&max_conns=20&max_idle_conns=4
+      SECRETS_SYSTEM: ${HYDRA_SYSTEM_SECRET:-change-this-local-dev-secret}
+      URLS_SELF_ISSUER: ${HYDRA_ISSUER_URL:-http://localhost:4444/}
+    volumes:
+      - ./auth-server/hydra/hydra.yml:/etc/config/hydra/hydra.yml:ro
+    ports:
+      - "${HYDRA_PUBLIC_PORT:-4444}:4444"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4444/health/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - public
+      - private
+
+  auth-admin-panel-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ADMIN_PANEL_DB_NAME:-admin_web}
+      POSTGRES_USER: ${ADMIN_PANEL_DB_USER:-admin_web}
+      POSTGRES_PASSWORD: ${ADMIN_PANEL_DB_PASSWORD:-admin_web}
+    volumes:
+      - auth_admin_panel_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${ADMIN_PANEL_DB_USER:-admin_web} -d ${ADMIN_PANEL_DB_NAME:-admin_web}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - private
+
+  auth-admin-panel:
+    build:
+      context: ./auth-admin-panel
+    restart: unless-stopped
+    depends_on:
+      hydra:
+        condition: service_healthy
+      auth-admin-panel-postgres:
+        condition: service_healthy
+    environment:
+      PORT: ${ADMIN_PANEL_PORT:-3001}
+      AUTH_URL: ${ADMIN_PANEL_AUTH_URL:-http://localhost:3001}
+      AUTH_SECRET: ${ADMIN_PANEL_AUTH_SECRET:-replace-with-a-long-random-secret}
+      HYDRA_ADMIN_URL: http://hydra:4445
+      DATABASE_HOST: auth-admin-panel-postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${ADMIN_PANEL_DB_USER:-admin_web}
+      DATABASE_PASSWORD: ${ADMIN_PANEL_DB_PASSWORD:-admin_web}
+      DATABASE_NAME: ${ADMIN_PANEL_DB_NAME:-admin_web}
+      DATABASE_URL: postgresql://${ADMIN_PANEL_DB_USER:-admin_web}:${ADMIN_PANEL_DB_PASSWORD:-admin_web}@auth-admin-panel-postgres:5432/${ADMIN_PANEL_DB_NAME:-admin_web}?schema=public
+      ADMIN_EMAIL: ${ADMIN_PANEL_ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PANEL_ADMIN_PASSWORD:-change-me}
+      ADMIN_NAME: ${ADMIN_PANEL_ADMIN_NAME:-Platform Admin}
+      DEV_BYPASS_AUTH: "false"
+    command:
+      - sh
+      - -c
+      - bun run db:migrate:deploy && bun run db:seed && bun --bun next start -H 0.0.0.0 -p $$PORT
+    ports:
+      - "${ADMIN_PANEL_PORT:-3001}:3001"
+    networks:
+      - public
+      - private
+
+  resource-server-postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${RESOURCE_SERVER_DB_NAME:-resource_server}
+      POSTGRES_USER: ${RESOURCE_SERVER_DB_USER:-resource_server}
+      POSTGRES_PASSWORD: ${RESOURCE_SERVER_DB_PASSWORD:-resource_server}
+    volumes:
+      - resource_server_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${RESOURCE_SERVER_DB_USER:-resource_server} -d ${RESOURCE_SERVER_DB_NAME:-resource_server}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - private
+
+  resource-server:
+    build:
+      context: ./resource-server
+    restart: unless-stopped
+    depends_on:
+      hydra:
+        condition: service_healthy
+      resource-server-postgres:
+        condition: service_healthy
+    environment:
+      PORT: ${RESOURCE_SERVER_PORT:-3000}
+      DATABASE_URL: postgresql://${RESOURCE_SERVER_DB_USER:-resource_server}:${RESOURCE_SERVER_DB_PASSWORD:-resource_server}@resource-server-postgres:5432/${RESOURCE_SERVER_DB_NAME:-resource_server}?schema=public
+      HYDRA_ADMIN_URL: http://hydra:4445
+    command:
+      - sh
+      - -c
+      - pnpm run prisma:migrate:deploy && pnpm run prisma:seed && node dist/src/main.js
+    ports:
+      - "${RESOURCE_SERVER_PORT:-3000}:3000"
+    networks:
+      - public
+      - private
+
+volumes:
+  hydra_postgres_data:
+  auth_admin_panel_postgres_data:
+  resource_server_postgres_data:
+
+networks:
+  public:
+  private:
+    internal: true
