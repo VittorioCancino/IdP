@@ -1,8 +1,19 @@
-import { Controller, Get, Post, Body, Delete, Param } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AudienceGuard } from '../auth/guards/audience.guard';
+import { HydraAuthGuard } from '../auth/guards/hydra-auth.guard';
 import { UsersService } from './users.service';
 import { CreateUserDto, CreateUserDtoResponse } from './dto/create-user.dto';
 import { DeleteUserDto, DeleteUserDtoResponse } from './dto/delete-user.dto';
 
+@UseGuards(HydraAuthGuard, AudienceGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
